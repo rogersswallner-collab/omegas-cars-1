@@ -19,6 +19,8 @@ if (isset($_POST['actualizar'])) {
   $precio_descuento = !empty($_POST['precio_descuento']) ? $_POST['precio_descuento'] : 'NULL';
   $categoria = $_POST['categoria'];
   $stock = $_POST['stock'];
+  $origen = $_POST['origen'];
+  $proveedor_id = (!empty($_POST['proveedor_id']) && $_POST['origen'] == 'comprado') ? intval($_POST['proveedor_id']) : 'NULL';
 
   $sql = "UPDATE productos SET
           marca = '$marca',
@@ -26,7 +28,9 @@ if (isset($_POST['actualizar'])) {
           precio = '$precio',
           precio_descuento = $precio_descuento,
           categoria = '$categoria',
-          stock = '$stock'
+          stock = '$stock',
+          origen = '$origen',
+          proveedor_id = $proveedor_id
           WHERE id = $id";
   $conn->query($sql);
   header('Location: products.php');
@@ -41,9 +45,11 @@ if (isset($_POST['guardar'])) {
   $precio_descuento = !empty($_POST['precio_descuento']) ? $_POST['precio_descuento'] : 'NULL';
   $categoria = $_POST['categoria'];
   $stock = $_POST['stock'];
+  $origen = $_POST['origen'];
+  $proveedor_id = (!empty($_POST['proveedor_id']) && $_POST['origen'] == 'comprado') ? intval($_POST['proveedor_id']) : 'NULL';
 
-  $sql = "INSERT INTO productos (marca, descripcion, precio, precio_descuento, categoria, stock)
-          VALUES ('$marca', '$descripcion', '$precio', $precio_descuento, '$categoria', '$stock')";
+  $sql = "INSERT INTO productos (marca, descripcion, precio, precio_descuento, categoria, stock, origen, proveedor_id)
+          VALUES ('$marca', '$descripcion', '$precio', $precio_descuento, '$categoria', '$stock', '$origen', $proveedor_id)";
   $conn->query($sql);
   header('Location: products.php');
   exit;
@@ -57,8 +63,11 @@ if (isset($_GET['editar'])) {
   $productoEditar = $result->fetch_assoc();
 }
 
+// Obtener proveedores
+$proveedores = $conn->query("SELECT * FROM proveedores ORDER BY nombre ASC");
+
 // Obtener productos
-$productos = $conn->query("SELECT * FROM productos ORDER BY marca, precio ASC");
+$productos = $conn->query("SELECT p.*, prov.nombre as proveedor_nombre, prov.empresa as proveedor_empresa FROM productos p LEFT JOIN proveedores prov ON p.proveedor_id = prov.id ORDER BY p.marca, p.precio ASC");
 ?>
 
 <!DOCTYPE html>
@@ -109,6 +118,41 @@ $productos = $conn->query("SELECT * FROM productos ORDER BY marca, precio ASC");
         <input type="number" name="stock" placeholder="Stock (opcional)"
                value="<?php echo $productoEditar ? $productoEditar['stock'] : ''; ?>">
 
+        <div class="form-field">
+          <label>Origen del Producto</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="origen" value="comprado" required
+                     <?php echo (!$productoEditar || $productoEditar['origen'] == 'comprado') ? 'checked' : ''; ?>>
+              Comprado
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="origen" value="fabricado"
+                     <?php echo ($productoEditar && $productoEditar['origen'] == 'fabricado') ? 'checked' : ''; ?>>
+              Fabricado
+            </label>
+          </div>
+        </div>
+
+        <div class="form-field" id="proveedor-field">
+          <label>Proveedor (solo para productos comprados)</label>
+          <select name="proveedor_id">
+            <option value="">Ninguno</option>
+            <?php
+            if ($proveedores):
+              while ($prov = $proveedores->fetch_assoc()):
+            ?>
+              <option value="<?php echo $prov['id']; ?>"
+                      <?php echo ($productoEditar && $productoEditar['proveedor_id'] == $prov['id']) ? 'selected' : ''; ?>>
+                <?php echo htmlspecialchars($prov['nombre']) . ($prov['empresa'] ? ' - ' . htmlspecialchars($prov['empresa']) : ''); ?>
+              </option>
+            <?php
+              endwhile;
+            endif;
+            ?>
+          </select>
+        </div>
+
         <div class="form-buttons">
           <?php if ($productoEditar): ?>
             <button type="submit" name="actualizar">Actualizar Producto</button>
@@ -147,6 +191,10 @@ $productos = $conn->query("SELECT * FROM productos ORDER BY marca, precio ASC");
               <?php endif; ?>
               <?php if ($p['stock'] !== null): ?>
                 <p><strong>Stock:</strong> <?php echo $p['stock']; ?> unidades</p>
+              <?php endif; ?>
+              <p><strong>Origen:</strong> <?php echo ucfirst($p['origen']); ?></p>
+              <?php if ($p['proveedor_nombre']): ?>
+                <p><strong>Proveedor:</strong> <?php echo htmlspecialchars($p['proveedor_nombre']); ?><?php echo $p['proveedor_empresa'] ? ' - ' . htmlspecialchars($p['proveedor_empresa']) : ''; ?></p>
               <?php endif; ?>
 
               <div class="acciones">

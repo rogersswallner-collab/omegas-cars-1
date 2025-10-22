@@ -24,6 +24,12 @@ include('includes/auth.php');
         <p>Administra el catálogo de vehículos y autopartes</p>
       </a>
 
+      <a href="providers.php" class="menu-card">
+        <div class="menu-icon">🏭</div>
+        <h3>Gestión de Proveedores</h3>
+        <p>Administra proveedores y fabricantes</p>
+      </a>
+
       <a href="sales.php" class="menu-card">
         <div class="menu-icon">💰</div>
         <h3>Registrar Ventas</h3>

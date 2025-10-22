@@ -16,6 +16,19 @@ CREATE TABLE usuarios (
   respuesta_3 VARCHAR(255) NOT NULL
 );
 
+-- Tabla de proveedores
+CREATE TABLE proveedores (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100) NOT NULL,
+  empresa VARCHAR(100),
+  email VARCHAR(100),
+  telefono VARCHAR(20),
+  direccion TEXT,
+  pais VARCHAR(50),
+  notas TEXT,
+  fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Tabla de productos
 CREATE TABLE productos (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -24,7 +37,10 @@ CREATE TABLE productos (
   precio DECIMAL(10,2) NOT NULL,
   precio_descuento DECIMAL(10,2) DEFAULT NULL,
   categoria VARCHAR(100),
-  stock INT DEFAULT 0
+  stock INT DEFAULT 0,
+  origen ENUM('comprado', 'fabricado') DEFAULT 'comprado',
+  proveedor_id INT DEFAULT NULL,
+  FOREIGN KEY (proveedor_id) REFERENCES proveedores(id) ON DELETE SET NULL
 );
 
 -- Tabla de ventas (encabezado)
